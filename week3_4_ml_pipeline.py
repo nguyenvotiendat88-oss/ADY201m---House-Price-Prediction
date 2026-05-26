@@ -1,70 +1,80 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LinearRegression, Ridge
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from xgboost import XGBRegressor
-from lightgbm import LGBMRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-import warnings
-warnings.filterwarnings('ignore') # Ẩn các cảnh báo phiên bản thư viện
 
-def run_ml_pipeline(data_path):
-    print("Đang đọc dữ liệu sạch...")
-    df = pd.read_csv(data_path)
-    
-    # 1. Trực quan hóa dữ liệu (Tuần 3)
-    print("Đang tạo biểu đồ phân bố giá nhà theo khoảng cách (EDA)...")
-    plt.figure(figsize=(10, 6))
-    sns.scatterplot(data=df, x='Distance_to_Center_km', y='SalePrice', alpha=0.6, color='darkcyan')
-    plt.title('House Prices vs. Distance to City Center')
-    plt.xlabel('Distance to Center (km)')
-    plt.ylabel('Sale Price (USD)')
-    plt.grid(True)
-    plt.savefig('spatial_price_distribution.png')
-    print("Đã lưu biểu đồ: spatial_price_distribution.png\n")
-    
-    # 2. Lựa chọn Đặc trưng & Phân chia Dữ liệu (Tuần 4)
-    features = ['OverallQual', 'GrLivArea', 'GarageCars', 'TotalBsmtSF', 'Distance_to_Center_km']
-    X = df[features]
-    y = df['SalePrice']
-    
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
-    
-    # 3. Khởi tạo 5 Mô hình Học máy
-    models = {
-        "Linear Regression": LinearRegression(),
-        "Ridge Regression": Ridge(alpha=1.0),
-        "Random Forest": RandomForestRegressor(n_estimators=100, random_state=42),
-        "XGBoost": XGBRegressor(n_estimators=100, learning_rate=0.1, random_state=42),
-        "LightGBM": LGBMRegressor(n_estimators=100, learning_rate=0.1, random_state=42, verbose=-1)
-    }
-    
-    # 4. Huấn luyện và Đánh giá Metrics
-    print("--- KẾT QUẢ HUẤN LUYỆN 5 MÔ HÌNH ---")
-    print(f"{'Mô hình':<20} | {'MAE':<12} | {'RMSE':<12} | {'R2 Score':<8}")
-    print("-" * 60)
-    
-    for name, model in models.items():
-        model.fit(X_train_scaled, y_train)
-        y_pred = model.predict(X_test_scaled)
-        
-        mae = mean_absolute_error(y_test, y_pred)
-        rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-        r2 = r2_score(y_test, y_pred)
-        
-        print(f"{name:<20} | {mae:<12,.2f} | {rmse:<12,.2f} | {r2:.4f}")
+print("Bắt đầu load data ")
+# Đọc file csv sạch đợt trước tạo ra
+df = pd.read_csv('cleaned_house_prices.csv')
 
-if __name__ == "__main__":
-    try:
-        run_ml_pipeline('cleaned_house_prices.csv')
-        print("\nHoàn tất Tuần 3 & 4. Sẵn sàng báo cáo số liệu!")
-    except FileNotFoundError:
-        print("Lỗi: Không tìm thấy file 'cleaned_house_prices.csv'.")
+# Khai báo cột X với Y
+X = df[['OverallQual', 'GrLivArea', 'GarageCars', 'TotalBsmtSF', 'Distance_to_Center_km']]
+Y = df['SalePrice']
+
+# Chia 80/20. random_state = 42 để không bị đổi kết quả
+x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
+
+# scale data không là AI nó sẽ lỗi vì diện tích to quá
+cai_can = StandardScaler()
+x_train_scale = cai_can.fit_transform(x_train)
+x_test_scale = cai_can.transform(x_test) # test thì transform thôi
+
+print("\nĐang train 5 mô hình ")
+
+# ----------------------------------------------------
+# 1. Hồi quy tuyến tính (Linear Regression)
+print("--- 1. Linear Regression ---")
+model_1 = LinearRegression()
+model_1.fit(x_train_scale, y_train)
+kq_1 = model_1.predict(x_test_scale)
+print("Sai số MAE: ", mean_absolute_error(y_test, kq_1))
+print("Điểm R2: ", r2_score(y_test, kq_1))
+
+# ----------------------------------------------------
+# 2. Cây quyết định (Decision Tree)
+print("--- 2. Decision Tree ---")
+model_2 = DecisionTreeRegressor(random_state=42)
+model_2.fit(x_train_scale, y_train)
+kq_2 = model_2.predict(x_test_scale)
+print("Sai số MAE: ", mean_absolute_error(y_test, kq_2))
+print("Điểm R2: ", r2_score(y_test, kq_2))
+
+# ----------------------------------------------------
+# 3. Rừng ngẫu nhiên (Random Forest) 
+print("--- 3. Random Forest ---")
+model_3 = RandomForestRegressor(n_estimators=100, random_state=42)
+model_3.fit(x_train_scale, y_train)
+kq_3 = model_3.predict(x_test_scale)
+print("Sai số MAE: ", mean_absolute_error(y_test, kq_3))
+print("Điểm R2: ", r2_score(y_test, kq_3))
+
+# ----------------------------------------------------
+# 4. Gradient Boosting
+print("--- 4. Gradient Boosting ---")
+model_4 = GradientBoostingRegressor(n_estimators=100, random_state=42)
+model_4.fit(x_train_scale, y_train)
+kq_4 = model_4.predict(x_test_scale)
+print("Sai số MAE: ", mean_absolute_error(y_test, kq_4))
+print("Điểm R2: ", r2_score(y_test, kq_4))
+
+# ----------------------------------------------------
+# 5. XGBoost (Thằng này xịn nhất để làm web nè)
+print("--- 5. XGBoost ---")
+model_5 = XGBRegressor(n_estimators=100, learning_rate=0.1, random_state=42)
+model_5.fit(x_train_scale, y_train)
+kq_5 = model_5.predict(x_test_scale)
+print("Sai số MAE: ", mean_absolute_error(y_test, kq_5))
+print("Điểm R2: ", r2_score(y_test, kq_5))
+
+# ----------------------------------------------------
+print("\nTrain xong rồi, giờ lưu model 5 (XGBoost) với cái cân ra file pkl...")
+joblib.dump(model_5, 'best_xgboost_model.pkl')
+joblib.dump(cai_can, 'scaler.pkl')
+
+print("Oke lưu xong! Test thử giao diện web được rồi nha!")
