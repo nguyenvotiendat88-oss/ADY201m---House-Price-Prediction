@@ -1,31 +1,43 @@
-# 🏡 House Price Prediction with Geospatial Features
+🏡 House Price Prediction with Geospatial Features
+Course: ADY201m - AI & Data Science with Python & SQL
+University: FPT University
+Dataset: Ames Housing (Kaggle) supplemented with Geospatial Data
 
-**Course:** ADY201m - AI & Data Science with Python & SQL
-**University:** FPT University
-**Dataset:** Ames Housing (Kaggle) supplemented with Geospatial Data
+📌 Project Overview
+Dự án xây dựng một hệ thống Data Pipeline khép kín để dự đoán giá bất động sản. Khác biệt cốt lõi của dự án là việc loại bỏ cách phân tích chỉ dựa trên đặc trưng vật lý truyền thống, thay vào đó tích hợp Đặc trưng không gian (Geospatial Features). Hệ thống bao gồm quy trình truy xuất bằng SQLite in-memory, huấn luyện qua 5 mô hình học máy (XGBoost là lõi) và triển khai thực tế bằng Web Dashboard Streamlit.
 
-## 📌 Project Overview
-Dự án này giải quyết bài toán dự đoán giá bất động sản (Regression) bằng cách kết hợp các đặc trưng kiến trúc truyền thống và **đặc trưng không gian (Geospatial Features)**. Mục tiêu là chứng minh việc áp dụng tọa độ địa lý (Latitude/Longitude) và công thức tính toán khoảng cách thực tế sẽ cải thiện độ chính xác của các mô hình Tree-based (XGBoost, LightGBM).
+🎯 Research Questions (RQs)
+Khám phá Đặc trưng: Khoảng cách địa lý tác động thế nào đến giá nhà so với các thuộc tính vật lý (diện tích, chất lượng)?
 
-## 🎯 Research Questions (RQs)
-1. **Khám phá Đặc trưng:** Đặc trưng không gian (khoảng cách đến trung tâm, tiện ích) ảnh hưởng như thế nào đến giá trị bất động sản so với các đặc trưng vật lý?
-2. **So sánh Mô hình:** Các mô hình Tree-based (XGBoost, LightGBM) thể hiện hiệu năng ra sao khi xử lý dữ liệu không gian so với Linear/Ridge Regression?
-3. **Đo lường Hiệu suất:** Việc tinh chỉnh siêu tham số (Hyperparameter tuning) giúp giảm sai số tuyệt đối trung bình (MAE) và gốc sai số toàn phương trung bình (RMSE) bao nhiêu phần trăm so với baseline?
+Đánh giá Mô hình: Trong số 5 thuật toán học máy (Linear, Decision Tree, Random Forest, Gradient Boosting, XGBoost), mô hình nào cân bằng tốt nhất giữa độ chính xác và khả năng triển khai thực tế?
 
-## 🛠 Tech Stack
-* **Database & Query:** SQLite / MySQL (Sử dụng Window Functions)
-* **Data Processing:** `pandas`, `numpy`, công thức `Haversine` (Tính khoảng cách bề mặt cầu)
-* **Machine Learning:** `scikit-learn`, `xgboost`, `lightgbm`
-* **Visualization:** `matplotlib`, `seaborn`, `folium`
-* **Reporting:** LaTeX (Springer Template)
+Phân tích Thiên kiến (Data Bias): Tư duy con người (Human Delta) có thể giúp phát hiện những nghịch lý về quy hoạch văn hóa mà cỗ máy AI không thể tự hiểu như thế nào?
 
-## 🚀 Pipeline & Execution
-* **Tuần 1-2:** Ingestion dữ liệu, xử lý tọa độ, tính toán khoảng cách Haversine và phân tích dữ liệu bằng SQL.
-* **Tuần 3-4:** Trực quan hóa dữ liệu không gian (Heatmap) và huấn luyện 5 Baseline Models.
-* **Tuần 5-7:** Tối ưu hóa mô hình, xây dựng Dashboard dự đoán và soạn thảo báo cáo học thuật bằng LaTeX.
+🛠 Tech Stack
+Database: SQLite3 (In-memory Database)
 
-## 🧠 AI Reflection & Human Delta
-Dự án này áp dụng phương pháp kiểm soát AI nghiêm ngặt thông qua quá trình ghi nhận **AI Audit Log**. Các dấu ấn can thiệp của con người (Human Delta) bao gồm:
-* **Hiệu chỉnh thuật toán không gian:** Tự động bác bỏ đề xuất dùng khoảng cách Euclid 2D của AI để tính tọa độ, thay thế bằng công thức Haversine để tính chính xác khoảng cách trên mặt cầu Trái Đất.
-* **Lựa chọn Metric chuyên sâu:** Nhận diện và sửa lỗi Hallucination khi AI đề xuất các metric của bài toán Phân loại (Accuracy, F1-Score) cho bài toán Hồi quy, chốt sử dụng MAE và RMSE.
-* **Tối ưu SQL:** Chủ động tối ưu hóa các Subquery lồng nhau do AI tạo ra bằng cách sử dụng `Window Functions`, giúp giảm đáng kể độ phức tạp thuật toán.
+Data Processing: pandas, numpy, thuật toán Haversine
+
+Machine Learning: scikit-learn, xgboost, joblib
+
+Web Deployment: streamlit
+
+Reporting: LaTeX (PDF Export)
+
+🚀 Cấu trúc Hệ thống (Pipeline)
+Dự án được chia module rành mạch, đảm bảo tính cô lập và dễ bảo trì:
+
+1. Xử lý Dữ liệu (week1_2_pipeline.py): Khởi tạo cơ sở dữ liệu SQLite ảo, làm sạch dữ liệu bằng SQL, tính toán khoảng cách bề mặt cầu bằng công thức Haversine, xuất ra file cleaned_house_prices.csv.
+
+2. Huấn luyện AI (week3_4_ml_pipeline.py): Chuẩn hóa dữ liệu (StandardScaler). Huấn luyện và đánh giá 5 mô hình. Khóa băng (freeze) mô hình XGBoost tốt nhất (R² = 88%) ra các file nhị phân best_xgboost_model.pkl và scaler.pkl.
+
+3. Triển khai Web (week5_dashboard.py): Xây dựng giao diện tương tác, load mô hình từ file PKL, tự động quy đổi giá trị dự đoán từ USD sang VNĐ.
+
+🧠 AI Reflection & Human Delta
+Dự án được kiểm soát nghiêm ngặt bằng logic của kỹ sư thay vì phụ thuộc 100% vào AI. Các dấu ấn can thiệp của con người (Human Delta) bao gồm:
+
+Xử lý Thiên kiến Dữ liệu (Data Bias): AI tìm ra quy luật "Nhà càng xa trung tâm, giá càng cao". Máy móc chỉ nhìn vào số liệu, nhưng tư duy con người (Human Delta) đã giải thích được nghịch lý này: Đây là văn hóa quy hoạch vùng ngoại ô (Suburban) của Mỹ (giới tinh hoa thích ở xa lõi đô thị), hoàn toàn trái ngược với thị trường bất động sản lõi trung tâm tại Việt Nam.
+
+Hiệu chỉnh thuật toán không gian: Bác bỏ việc sử dụng khoảng cách Euclid 2D cơ bản, chủ động áp dụng công thức lượng giác Haversine để tính chính xác khoảng cách cung tròn trên mặt cầu Trái Đất nhằm giảm thiểu tối đa sai số địa lý.
+
+Đánh đổi trong Model Selection: Mặc dù Gradient Boosting có điểm R² cao hơn một chút (89.7%), kỹ sư chủ động chọn XGBoost (88.0%) làm mô hình Production vì kiến trúc của XGBoost xử lý ngoại lệ mạnh mẽ hơn, tốc độ suy luận (inference speed) nhanh hơn, phù hợp để đưa lên Web Dashboard.
